@@ -14,6 +14,10 @@ public class InventoryManager
         { "Wooden Bat", 1 },
     };
     
+    /// <summary>
+    /// Prints all items in an inventory to the console. If the inventory is empty, a message will be printed to the console.
+    /// </summary>
+    /// <param name="inventory"></param>
     public static void PrintItems(Dictionary<string, int> inventory)
     {
         if (inventory.Count < 1)
@@ -45,17 +49,52 @@ public class InventoryManager
     /// <param name="inventory">Reference to the inventory that will be searched</param>
     public static void AddItem(string item, int amount, ref Dictionary<string, int> inventory)
     {
-        // using LINQ to filter results
-        Dictionary<string, int> temp = inventory.Where(kvp => kvp.Key.ToLower().Contains(item.ToLower()))
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        // Check if any key in the dictionary matches the lowercase item
+        var matchingKeys = inventory.Keys.Where(key => string.Equals(key.ToLower(), item.ToLower(), StringComparison.CurrentCultureIgnoreCase));
         
-        if (temp.Count > 0)
+        //PrintItems(inventory);
+
+        if (matchingKeys.Any())
         {
-            inventory[item] += amount;
+            // Use the first matching key (case-insensitive) to update the quantity
+            var matchingKey = matchingKeys.First();
+            inventory[matchingKey] += amount;
         }
         else
         {
+            // Add a new item to the dictionary with the original item name
             inventory.Add(item, amount);
+        }
+    }
+    
+    public static bool EditItem(string item, int newQuantity, ref Dictionary<string, int> inventory)
+    {
+        // Check if any key in the dictionary matches the lowercase item
+        var matchingKeys = inventory.Keys.Where(key => string.Equals(key.ToLower(), item.ToLower(), StringComparison.CurrentCultureIgnoreCase));
+        
+        //PrintItems(inventory);
+
+        if (matchingKeys.Any())
+        {
+            // Use the first matching key (case-insensitive) to update the quantity
+            var matchingKey = matchingKeys.First();
+
+            if (newQuantity > 0)
+            {
+                // Update the quantity with the new valid amount
+                inventory[matchingKey] = newQuantity;
+                return true; // Successful edit
+            }
+            else
+            {
+                Console.WriteLine("Invalid quantity. Quantity must be greater than 0.");
+                return false; // Invalid quantity
+            }
+        }
+        else
+        {
+            PrintItemNotFound();
+            return false; // Item not found in the inventory
         }
     }
     
@@ -68,41 +107,44 @@ public class InventoryManager
     /// <returns>Was the removal successful</returns>
     public static bool RemoveItem(string item, int amount, ref Dictionary<string, int> inventory)
     {
-        bool result = false;
+        // Check if any key in the dictionary matches the lowercase item
+        var matchingKeys = inventory.Keys.Where(key => string.Equals(key.ToLower(), item.ToLower(), StringComparison.CurrentCultureIgnoreCase));
         
-        if (inventory.ContainsKey(item))
-        {
-            // calculate the amount of items left after removal
-            int temp = inventory[item] - amount;
+        //PrintItems(inventory);
 
-            // if the calculated amount is greater than or equal to 0, then initiate the removal of the item
-            if (temp >= 0)
+        if (matchingKeys.Any())
+        {
+            // Use the first matching key (case-insensitive) to update the quantity
+            var matchingKey = matchingKeys.First();
+
+            // Calculate the remaining quantity after removal
+            int newQuantity = inventory[matchingKey] - amount;
+
+            if (newQuantity >= 0)
             {
-                switch (temp)
+                // Update the quantity or remove the item based on the new quantity
+                if (newQuantity == 0)
                 {
-                    case 0:
-                        inventory.Remove(item);
-                        result = true;
-                        break;
-                    
-                    default:
-                        inventory[item] -= amount;
-                        result = true;
-                        break;
+                    inventory.Remove(matchingKey);
                 }
+                else
+                {
+                    inventory[matchingKey] = newQuantity;
+                }
+
+                return true; // Successful removal
             }
             else
             {
-                // you cannot remove items that you don't have
-                Console.WriteLine("You are trying to remove more items than are available in the inventory.");
-                result = false;
+                Console.Write("Cannot remove more items than are available in the inventory, please try again: ");
+                return false; // Removal not possible due to insufficient quantity
             }
         }
         else
         {
             PrintItemNotFound();
+            return false; // Item not found in the inventory
         }
-        return result;
     }
 
     public static void PrintItemNotFound()
