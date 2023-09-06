@@ -6,7 +6,9 @@
 		
 		static void Main(string[] args)
 		{
-			Console.WriteLine("Hello, World!");
+			Console.WriteLine("Add new item: ");
+			Console.Write("Name: ");
+			
 		}
 	}
 }

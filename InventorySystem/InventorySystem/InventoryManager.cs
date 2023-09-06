@@ -45,7 +45,11 @@ public class InventoryManager
     /// <param name="inventory">Reference to the inventory that will be searched</param>
     public static void AddItem(string item, int amount, ref Dictionary<string, int> inventory)
     {
-        if (inventory.ContainsKey(item))
+        // using LINQ to filter results
+        Dictionary<string, int> temp = inventory.Where(kvp => kvp.Key.ToLower().Contains(item.ToLower()))
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        
+        if (temp.Count > 0)
         {
             inventory[item] += amount;
         }
